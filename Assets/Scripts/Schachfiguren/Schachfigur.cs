@@ -8,10 +8,10 @@ abstract class Schachfigur : MonoBehaviour {
   public abstract string Title {get;}
 
   // Position auf x-Achse (zwischen -7 und 7, steht für A-H).
-  int X {get; set;}
+  public int X {get; private set;}
   
   // Position auf z-Achse (zwischen -7 und 7, steht für 1-8).
-  int Z {get; set;}
+  public int Z {get; private set;}
 
   // Für bessere Beschriftung
   string[] columns = {"A","B","C","D","E","F","G","H"};

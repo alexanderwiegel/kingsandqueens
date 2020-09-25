@@ -39,8 +39,28 @@ public class GameState : MonoBehaviour {
         if (Physics.Raycast(castPoint, out hit, Mathf.Infinity)) {
             if (Input.GetMouseButtonDown(0)) {
                 Vector3 position = hit.transform.position;
-                print((int)position.x/2 + " " + (int)position.z/2);
-                SelectPiece((int)position.x/2, (int)position.z/2);
+                int x = (int)position.x/2;
+                int z = (int)position.z/2;
+
+                if (selectedPiece == null) {
+                    SelectPiece(x,z);
+                    //selectedPiece.ShowPossibleMovements();
+                }
+                else {
+                    //if (selectedPiece.possibleMove) {
+                    if (true) {
+                        // an der bisherigen Position der Figur steht nun keine mehr
+                        Schachfiguren[selectedPiece.X, selectedPiece.Z] = null;
+                        // physische Bewegung der Figur
+                        selectedPiece.transform.position = new Vector3(x*2, 0, z*2);
+                        // speichern der neuen Position der Figur
+                        Schachfiguren[x,z] = selectedPiece;
+                        // Wechsel
+                        isWhiteTurn = !isWhiteTurn;
+                    }
+                    selectedPiece = null;
+                }
+                
             }
         }       
     }
