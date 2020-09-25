@@ -2,7 +2,7 @@
 abstract class Schachfigur : MonoBehaviour {
   #region fields and properties
   // Farbe (weiß oder schwarz).
-  public bool isWhite;
+  public bool isWhite = false;
 
   // Name der Figur. Kann nur gelesen, nicht verändert werden.
   public abstract string Title {get;}
@@ -36,7 +36,8 @@ abstract class Schachfigur : MonoBehaviour {
   */
   public override string ToString() {
     string color;
-    if (isWhite) color = "weiß"; else color = "schwarz";
+    if (isWhite) color = "weiß"; 
+    else color = "schwarz";
     string spalte = columns[X];
     int reihe = Z+1;
     return Title + ", " + color + ", Position: " + spalte + reihe;

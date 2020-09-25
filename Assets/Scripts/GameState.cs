@@ -14,7 +14,7 @@ public class GameState : MonoBehaviour {
     string[] columns = {"A","B","C","D","E","F","G","H"};
 
     // Beinhaltet alle 12 Prefabs (6 Figuren in je 2 Farben)
-    public List<GameObject> schachfigurArten;
+    public List<GameObject> prefabs;
 
     // Liste der lebenden Schachfiguren
     List<GameObject> schachfiguren;
@@ -39,15 +39,8 @@ public class GameState : MonoBehaviour {
         if (Physics.Raycast(castPoint, out hit, Mathf.Infinity)) {
             if (Input.GetMouseButtonDown(0)) {
                 Vector3 position = hit.transform.position;
-                if (selectedPiece == null) {
-                    //SelectPiece((int)position.x, (int)position.z);
-                    print((int)position.x/2);
-                    print(selectedPiece);
-                    // Schachfigur.ShowPossibleMovements();
-                }
-                else {
-                    //Schachfigur.Move();
-                }
+                print((int)position.x/2 + " " + (int)position.z/2);
+                SelectPiece((int)position.x/2, (int)position.z/2);
             }
         }       
     }
@@ -56,6 +49,7 @@ public class GameState : MonoBehaviour {
         if (Schachfiguren[x,z] == null) return;
         else if (Schachfiguren[x,z].isWhite != isWhiteTurn) return; 
         else selectedPiece = Schachfiguren[x,z];
+        print(selectedPiece);
     }
 
     void CreateChessBoard() {
@@ -69,6 +63,7 @@ public class GameState : MonoBehaviour {
         }
     }
 
+    // TODO: hier Meshes statt Planes benutzen
     void CreateSingleChessField(int row, int column, Color color) {
         GameObject feld = GameObject.CreatePrimitive(PrimitiveType.Plane);
         feld.GetComponent<Renderer>().material.color = color;
@@ -83,6 +78,7 @@ public class GameState : MonoBehaviour {
         schachfiguren = new List<GameObject>();
         Schachfiguren = new Schachfigur[8,8];
         
+        // (PrefabNr, x, y)
         #region Weiß
         // Türme
         CreateSingleChessPiece(0,0,0);
@@ -126,7 +122,7 @@ public class GameState : MonoBehaviour {
 
     void CreateSingleChessPiece(int index, int x, int z) {
         GameObject figur;
-        figur = Instantiate(schachfigurArten[index], new Vector3(x*2, 0, z*2), Quaternion.identity) as GameObject;
+        figur = Instantiate(prefabs[index], new Vector3(x*2, 0, z*2), Quaternion.identity) as GameObject;
         schachfiguren.Add(figur);
         // Setzt Schachfiguren im imaginären Schachbrett auf Initialposition
         Schachfiguren[x,z] = figur.GetComponent<Schachfigur>();
