@@ -3,12 +3,15 @@ using System.Collections.Generic;
 
 public class GameState : MonoBehaviour {
     #region fields and properties
+    public static GameState Instance {get; set;}
+    private bool[,] allowedMoves {get; set;}
+
     // Empty, das alle Felder beinhaltet
     public GameObject spielfeld;
     
     // 2D-Schachfiguren-Array, in dem Positionen der Figuren gespeichert werden
     // sowie dazugehörige Property
-    Schachfigur[,] Schachfiguren {get; set;} 
+    public Schachfigur[,] Schachfiguren {get; set;} 
 
     // Für bessere Beschriftung
     string[] columns = {"A","B","C","D","E","F","G","H"};
@@ -25,6 +28,7 @@ public class GameState : MonoBehaviour {
 
     #region methods
     void Start() {
+        Instance = this;
         CreateChessBoard();
         CreateChessPieces();
     }
@@ -47,18 +51,30 @@ public class GameState : MonoBehaviour {
                     //selectedPiece.ShowPossibleMovements();
                 }
                 else {
-                    //if (selectedPiece.possibleMove) {
-                    if (true) {
-                        // an der bisherigen Position der Figur steht nun keine mehr
+                    if (allowedMoves[x,z]) {
+                        Schachfigur enemy = Schachfiguren[x,z];
+                        // wenn Figur auf Gegner stoßen wird
+                        if (enemy != null && enemy.isWhite != isWhiteTurn) {
+                            // wenn Gegner König ist, ist das Spiel vorbei
+                            if (enemy.Title == "König") return;
+
+                            // Gegner entfernen
+                            schachfiguren.Remove(enemy.gameObject);
+                            Destroy(enemy.gameObject);
+                        } 
+                        // an der bisherigen Position der Figur steht gleich keine mehr
                         Schachfiguren[selectedPiece.X, selectedPiece.Z] = null;
                         // physische Bewegung der Figur
                         selectedPiece.transform.position = new Vector3(x*2, 0, z*2);
                         // speichern der neuen Position der Figur
                         Schachfiguren[x,z] = selectedPiece;
+                        selectedPiece.Move(x,z);
                         // Wechsel
                         isWhiteTurn = !isWhiteTurn;
                     }
+                    // Auswahl aufheben
                     selectedPiece = null;
+                    Highlights.Instance.HideHighlights();
                 }
                 
             }
@@ -68,8 +84,12 @@ public class GameState : MonoBehaviour {
     void SelectPiece(int x, int z) {
         if (Schachfiguren[x,z] == null) return;
         else if (Schachfiguren[x,z].isWhite != isWhiteTurn) return; 
-        else selectedPiece = Schachfiguren[x,z];
-        print(selectedPiece);
+        else {
+            selectedPiece = Schachfiguren[x,z];
+            allowedMoves = selectedPiece.PossibleMovements();
+            Highlights.Instance.HighlightAllowedMoves(allowedMoves);
+            print(selectedPiece);
+        }
     }
 
     void CreateChessBoard() {
@@ -99,7 +119,7 @@ public class GameState : MonoBehaviour {
         Schachfiguren = new Schachfigur[8,8];
         
         // (PrefabNr, x, y)
-        #region Weiß
+        #region weiß
         // Türme
         CreateSingleChessPiece(0,0,0);
         CreateSingleChessPiece(0,7,0);
@@ -119,7 +139,7 @@ public class GameState : MonoBehaviour {
         }
         #endregion
 
-        #region Schwarz
+        #region schwarz
         // Türme
         CreateSingleChessPiece(6,0,7);
         CreateSingleChessPiece(6,7,7);

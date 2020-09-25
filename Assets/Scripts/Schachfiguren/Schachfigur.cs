@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-abstract class Schachfigur : MonoBehaviour {
+public abstract class Schachfigur : MonoBehaviour {
   #region fields and properties
   // Farbe (weiß oder schwarz).
   public bool isWhite = false;
@@ -21,7 +21,9 @@ abstract class Schachfigur : MonoBehaviour {
   /* Zeigt die möglichen Bewegungen einer Schachfigur.
   *  Wird aufgerufen, sobald eine eigene Schachfigur ausgewählt wurde.
   */
-  public abstract void ShowPossibleMovements();
+  public virtual bool[,] PossibleMovements() {
+    return new bool[8,8];
+  }
 
   /* Individuelle Bewegung einer Schachfigur.
   *  Muss von jeder Figur überschrieben werden.
