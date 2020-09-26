@@ -24,6 +24,11 @@ public class GameState : MonoBehaviour {
 
     Schachfigur selectedPiece;
     bool isWhiteTurn = true;
+
+    private Material previousMat;
+    public Material selectedMat;
+
+    public int[] EnPassantMove {get; set;}
     #endregion
 
     #region methods
@@ -46,10 +51,9 @@ public class GameState : MonoBehaviour {
                 int x = (int)position.x/2;
                 int z = (int)position.z/2;
 
-                if (selectedPiece == null) {
-                    SelectPiece(x,z);
-                    //selectedPiece.ShowPossibleMovements();
-                }
+                // Erstauswahl
+                if (selectedPiece == null) SelectPiece(x,z);
+                // Bewegung
                 else {
                     if (allowedMoves[x,z]) {
                         Schachfigur enemy = Schachfiguren[x,z];
@@ -62,6 +66,46 @@ public class GameState : MonoBehaviour {
                             schachfiguren.Remove(enemy.gameObject);
                             Destroy(enemy.gameObject);
                         } 
+
+                        #region en passant Bewegung des Bauern
+                        // wenn en passant Bewegung ausgeführt wird
+                        if (x == EnPassantMove[0] && z == EnPassantMove[1]) {
+                            // an der schwarzen Front
+                            if (isWhiteTurn) enemy = Schachfiguren[x,z-1];
+                            // an der weißen Front
+                            else enemy = Schachfiguren[x,z+1];
+                            // Gegner entfernen
+                            schachfiguren.Remove(enemy.gameObject);
+                            Destroy(enemy.gameObject);
+                        }
+                        EnPassantMove[0] = -1;
+                        EnPassantMove[1] = -1;
+                        if (selectedPiece.Title == "Bauer") {
+                            // wenn weißer Bauer noch auf Startposition ist und zwei Schritte vor geht
+                            if (selectedPiece.Z == 1 && z == 3) {
+                                EnPassantMove[0] = x;
+                                EnPassantMove[1] = z-1;
+                            }
+                            // wenn schwarzer Bauer noch auf Startposition ist und zwei Schritte vor geht
+                            else if (selectedPiece.Z == 6 && z == 4) {
+                                EnPassantMove[0] = x;
+                                EnPassantMove[1] = z+1;
+                            }
+                        #endregion
+
+                            #region Umwandlung des Bauern
+                            // wenn ein Bauer das jeweilige Ende des Spielfelds erreicht hat
+                            if (z == 7 || z == 0) {
+                                schachfiguren.Remove(selectedPiece.gameObject);
+                                Destroy(selectedPiece.gameObject);
+                                // TODO: hier Auswahl-Interface für Dame, Turm, Läufer und Springer anzeigen
+                                if (z == 7) CreateSingleChessPiece(3,x,z);
+                                else if (z == 0) CreateSingleChessPiece(9,x,z);
+                                selectedPiece = Schachfiguren[x,z];
+                            }
+                        }
+                        #endregion
+
                         // an der bisherigen Position der Figur steht gleich keine mehr
                         Schachfiguren[selectedPiece.X, selectedPiece.Z] = null;
                         // physische Bewegung der Figur
@@ -73,6 +117,7 @@ public class GameState : MonoBehaviour {
                         isWhiteTurn = !isWhiteTurn;
                     }
                     // Auswahl aufheben
+                    selectedPiece.GetComponent<MeshRenderer>().material = previousMat;
                     selectedPiece = null;
                     Highlights.Instance.HideHighlights();
                 }
@@ -82,10 +127,17 @@ public class GameState : MonoBehaviour {
     }
 
     void SelectPiece(int x, int z) {
+        // wenn dort keine Figur steht, wird nichts ausgewählt
         if (Schachfiguren[x,z] == null) return;
+        // wenn die Figur dem Gegner gehört, wird sie nicht ausgewählt
         else if (Schachfiguren[x,z].isWhite != isWhiteTurn) return; 
         else {
             selectedPiece = Schachfiguren[x,z];
+            // Hervorhebung der Figur
+            previousMat = selectedPiece.GetComponent<MeshRenderer>().material;
+            selectedMat.mainTexture = previousMat.mainTexture;
+            selectedPiece.GetComponent<MeshRenderer>().material = selectedMat;
+            // Highlighting der Züge
             allowedMoves = selectedPiece.PossibleMovements();
             Highlights.Instance.HighlightAllowedMoves(allowedMoves);
             print(selectedPiece);
@@ -117,7 +169,8 @@ public class GameState : MonoBehaviour {
     void CreateChessPieces() {
         schachfiguren = new List<GameObject>();
         Schachfiguren = new Schachfigur[8,8];
-        
+        EnPassantMove = new int[2]{-1,-1};
+
         // (PrefabNr, x, y)
         #region weiß
         // Türme
@@ -167,7 +220,6 @@ public class GameState : MonoBehaviour {
         // Setzt Schachfiguren im imaginären Schachbrett auf Initialposition
         Schachfiguren[x,z] = figur.GetComponent<Schachfigur>();
         Schachfiguren[x,z].Move(x,z);
-        //print(figur.GetComponent<Schachfigur>());
     }
     #endregion
 }

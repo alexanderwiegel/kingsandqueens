@@ -5,12 +5,16 @@
         Schachfigur other;
 
         bool[,] moves = new bool[8,8];
+        int[] e = GameState.Instance.EnPassantMove;
         
         #region weiß
         if (isWhite) {
             #region diagonal left
             // wenn nicht am Rande des Spielfelds
             if (X != 0 && Z != 7) {
+                // en passant Bewegung
+                if (e[0] == X-1 && e[1] == Z+1) moves[X-1, Z+1] = true;
+
                 other = GameState.Instance.Schachfiguren[X-1, Z+1];
                 // wenn dort Gegner steht
                 if (other != null && !other.isWhite) moves[X-1,Z+1] = true;
@@ -20,6 +24,9 @@
             #region diagonal rechts
             // wenn nicht am Rande des Spielfelds
             if (X != 7 && Z != 7) {
+                // en passant Bewegung
+                if (e[0] == X+1 && e[1] == Z+1) moves[X+1, Z+1] = true;
+
                 other = GameState.Instance.Schachfiguren[X+1, Z+1];
                 // wenn dort Gegner steht
                 if (other != null && !other.isWhite) moves[X+1,Z+1] = true;
@@ -52,6 +59,9 @@
             #region diagonal left
             // wenn nicht am Rande des Spielfelds
             if (X != 0 && Z != 0) {
+                // en passant Bewegung
+                if (e[0] == X-1 && e[1] == Z-1) moves[X-1, Z-1] = true;
+
                 other = GameState.Instance.Schachfiguren[X-1, Z-1];
                 // wenn dort Gegner steht
                 if (other != null && other.isWhite) moves[X-1,Z-1] = true;
@@ -61,6 +71,9 @@
             #region diagonal rechts
             // wenn nicht am Rande des Spielfelds
             if (X != 7 && Z != 0) {
+                // en passant Bewegung
+                if (e[0] == X+1 && e[1] == Z+1) moves[X+1, Z+1] = true;
+
                 other = GameState.Instance.Schachfiguren[X+1, Z-1];
                 // wenn dort Gegner steht
                 if (other != null && other.isWhite) moves[X+1,Z-1] = true;
