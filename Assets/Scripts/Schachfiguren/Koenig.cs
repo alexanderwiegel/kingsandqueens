@@ -17,6 +17,41 @@ class Koenig : Schachfigur {
     KingMove(X + 1, Z + 1, ref moves); // rechts hoch
     KingMove(X - 1, Z + 1, ref moves); // rechts runter
 
+    #region Rochade
+    // wenn sich der König noch nicht bewegt hat
+    if (!hasMoved) {
+
+      Schachfigur other;
+
+      #region kurze Rochade
+      other = GameState.Instance.Schachfiguren[X+3,Z];
+      // wenn der Königsturm sich noch nicht bewegt hat
+      if (other.Title == "Turm" && !other.hasMoved) {
+        // und alle Felder dazwischen frei sind
+        if (GameState.Instance.Schachfiguren[X+1,Z] == null
+         && GameState.Instance.Schachfiguren[X+2,Z] == null) {
+           // dann ist die kurze Rochade möglich
+           moves[X+2,Z] = true;
+         }
+      }
+      #endregion
+
+      #region lange Rochade
+      other = GameState.Instance.Schachfiguren[X-4,Z];
+      // wenn der Damenturm sich noch nicht bewegt hat
+      if (other.Title == "Turm" && !other.hasMoved) {
+        // und alle Felder dazwischen frei sind
+        if (GameState.Instance.Schachfiguren[X-1,Z] == null
+         && GameState.Instance.Schachfiguren[X-2,Z] == null
+         && GameState.Instance.Schachfiguren[X-3,Z] == null) {
+           // dann ist die lange Rochade möglich
+           moves[X-2,Z] = true;
+         }
+      }
+      #endregion
+    }
+    #endregion
+
     return moves;
   }
 

@@ -60,6 +60,7 @@ public class GameState : MonoBehaviour {
                         // wenn Figur auf Gegner stoßen wird
                         if (enemy != null && enemy.isWhite != isWhiteTurn) {
                             // wenn Gegner König ist, ist das Spiel vorbei
+                            // TODO: Schach + Schachmatt implementieren
                             if (enemy.Title == "König") return;
 
                             // Gegner entfernen
@@ -93,7 +94,7 @@ public class GameState : MonoBehaviour {
                             }
                         #endregion
 
-                            #region Umwandlung des Bauern
+                        #region Umwandlung des Bauern
                             // wenn ein Bauer das jeweilige Ende des Spielfelds erreicht hat
                             if (z == 7 || z == 0) {
                                 schachfiguren.Remove(selectedPiece.gameObject);
@@ -106,6 +107,41 @@ public class GameState : MonoBehaviour {
                         }
                         #endregion
 
+                        #region Rochade
+                        if (selectedPiece.Title == "König") {
+                            Schachfigur turm;
+                            #region kurze Rochade
+                            if (x == selectedPiece.X+2) {
+                                turm = Schachfiguren[x+1, z];
+                                // an der bisherigen Position des Turms steht dieser gleich nicht mehr
+                                Schachfiguren[x+1, z] = null;
+                                // physische Bewegung des Turms links vom König
+                                turm.transform.position = new Vector3((x-1)*2, 0, z*2);
+                                // speichern der neuen Position des Turms
+                                Schachfiguren[x-1,z] = turm;
+                                turm.Move(x-1,z);
+                                // Bewegung speichern (für Rochade wichtig)
+                                turm.hasMoved = true;
+                            }
+                            #endregion
+
+                            #region lange Rochade
+                            else if (x == selectedPiece.X-2) {
+                                turm = Schachfiguren[x-2, z];
+                                // an der bisherigen Position des Turms steht dieser gleich nicht mehr
+                                Schachfiguren[x-2, z] = null;
+                                // physische Bewegung des Turms rechts vom König
+                                turm.transform.position = new Vector3((x+1)*2, 0, z*2);
+                                // speichern der neuen Position des Turms
+                                Schachfiguren[x+1,z] = turm;
+                                turm.Move(x+1,z);
+                                // Bewegung speichern (für Rochade wichtig)
+                                turm.hasMoved = true;
+                            }
+                            #endregion
+                        }
+                        #endregion
+
                         // an der bisherigen Position der Figur steht gleich keine mehr
                         Schachfiguren[selectedPiece.X, selectedPiece.Z] = null;
                         // physische Bewegung der Figur
@@ -113,6 +149,8 @@ public class GameState : MonoBehaviour {
                         // speichern der neuen Position der Figur
                         Schachfiguren[x,z] = selectedPiece;
                         selectedPiece.Move(x,z);
+                        // Bewegung speichern (für Rochade wichtig)
+                        selectedPiece.hasMoved = true;
                         // Wechsel
                         isWhiteTurn = !isWhiteTurn;
                     }
@@ -140,7 +178,7 @@ public class GameState : MonoBehaviour {
             // Highlighting der Züge
             allowedMoves = selectedPiece.PossibleMovements();
             Highlights.Instance.HighlightAllowedMoves(allowedMoves);
-            print(selectedPiece);
+            //print(selectedPiece);
         }
     }
 

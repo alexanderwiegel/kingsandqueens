@@ -4,6 +4,8 @@ public abstract class Schachfigur : MonoBehaviour {
   // Farbe (weiß oder schwarz).
   public bool isWhite = false;
 
+  public bool hasMoved = false;
+
   // Name der Figur. Kann nur gelesen, nicht verändert werden.
   public abstract string Title {get;}
 
