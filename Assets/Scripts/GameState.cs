@@ -23,7 +23,8 @@ public class GameState : MonoBehaviour {
     List<GameObject> schachfiguren;
 
     Schachfigur selectedPiece;
-    bool isWhiteTurn = true;
+    public bool isWhiteTurn = true;
+    public bool changePerspective = false;
 
     private Material previousMat;
     public Material selectedMat;
@@ -46,7 +47,8 @@ public class GameState : MonoBehaviour {
         // Referenz auf das getroffene Objekt
         RaycastHit hit;
         if (Physics.Raycast(castPoint, out hit, Mathf.Infinity)) {
-            if (Input.GetMouseButtonDown(0)) {
+            // Auswahl nur möglich wenn keine Kamerafahrt stattfindet
+            if (Input.GetMouseButtonDown(0) && changePerspective == false) {
                 Vector3 position = hit.transform.position;
                 int x = (int)position.x/2;
                 int z = (int)position.z/2;
@@ -153,6 +155,7 @@ public class GameState : MonoBehaviour {
                         selectedPiece.hasMoved = true;
                         // Wechsel
                         isWhiteTurn = !isWhiteTurn;
+                        changePerspective = true;
                     }
                     // Auswahl aufheben
                     selectedPiece.GetComponent<MeshRenderer>().material = previousMat;
