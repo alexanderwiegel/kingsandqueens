@@ -7,7 +7,7 @@ public class CameraController : MonoBehaviour {
     private Transform parent;
 
     private Vector3 localRotation;
-    private float camDistance = 11f;
+    private float camDistance = 16f;
 
     public float mouseSensitivity = 4f;
     public float scrollSensitivity = 2f;
@@ -16,11 +16,14 @@ public class CameraController : MonoBehaviour {
     public float speed = 0.1f;
 
     public bool camDisabled = false;
+    public bool xAligned = false;
+    public bool yAligned = false;
     #endregion
     void Start() {
         Instance = this;
         cam = this.transform;
         parent = this.transform.parent;
+        localRotation.y = 30;
     }
 
     // LateUpdate(), damit Kamera nach allem anderen gerendered wird
@@ -33,7 +36,7 @@ public class CameraController : MonoBehaviour {
                 localRotation.x += Input.GetAxis("Mouse X") * mouseSensitivity;
                 localRotation.y -= Input.GetAxis("Mouse Y") * mouseSensitivity;
                 // Y-Rotation beschränken
-                localRotation.y = Mathf.Clamp(localRotation.y, -40f, 40f);
+                localRotation.y = Mathf.Clamp(localRotation.y, 10f, 90f);
             }
 
             // Zoom basierend auf Mausrad
@@ -59,16 +62,47 @@ public class CameraController : MonoBehaviour {
 
         if (GameState.Instance.changePerspective) {
             camDisabled = true;
-            parent.Rotate(0, 180 * speed * Time.deltaTime, 0);
-            if (GameState.Instance.isWhiteTurn && parent.eulerAngles.y > 0 && parent.eulerAngles.y < 180) {
-                parent.rotation = Quaternion.Euler(0,0,0);
-                GameState.Instance.changePerspective = false; 
+            /*
+            if (xAligned && yAligned) GameState.Instance.changePerspective = false;
+
+            #region x-Achse
+            if (!xAligned) {
+                if (Mathf.Floor(parent.eulerAngles.x) == 30) {
+                    parent.rotation = Quaternion.Euler(30,parent.rotation.y,0);
+                    localRotation = new Vector3(localRotation.y,30,0);
+                    xAligned = true;
+                }
+                else {
+                    // Space.World immens wichtig
+                    parent.Rotate(180 * speed * Time.deltaTime, 0, 0, Space.World);
+                }
             }
-            
-            else if (!GameState.Instance.isWhiteTurn && parent.eulerAngles.y > 180) {
-                parent.rotation = Quaternion.Euler(0,180,0);
-                GameState.Instance.changePerspective = false; 
-            }
+            #endregion
+            */
+
+            #region y-Achse
+            //else if (!yAligned) {
+                
+                // von schwarz nach weiß
+                if (GameState.Instance.isWhiteTurn && Mathf.Floor(parent.eulerAngles.y) == 0) {
+                    parent.rotation = Quaternion.Euler(30,0,0);
+                    localRotation = new Vector3(0,30,0);
+                    //yAligned = true;
+                    GameState.Instance.changePerspective = false;
+                }
+                // von weiß nach schwarz
+                else if (!GameState.Instance.isWhiteTurn && Mathf.Ceil(parent.eulerAngles.y) == 180) {
+                    parent.rotation = Quaternion.Euler(30,180,0);
+                    localRotation = new Vector3(180,30,0);
+                    //yAligned = true;
+                    GameState.Instance.changePerspective = false;
+                }
+                else {
+                    // Space.World immens wichtig
+                    parent.Rotate(0, 180 * speed * Time.deltaTime, 0, Space.World);
+                }
+            //}
+            #endregion
         }
     }
 }

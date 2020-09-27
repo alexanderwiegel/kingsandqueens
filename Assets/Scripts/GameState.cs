@@ -156,6 +156,8 @@ public class GameState : MonoBehaviour {
                         // Wechsel
                         isWhiteTurn = !isWhiteTurn;
                         changePerspective = true;
+                        CameraController.Instance.xAligned = false;
+                        CameraController.Instance.yAligned = false;
                     }
                     // Auswahl aufheben
                     selectedPiece.GetComponent<MeshRenderer>().material = previousMat;
