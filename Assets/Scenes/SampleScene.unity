@@ -226,8 +226,10 @@ MonoBehaviour:
   scrollSensitivity: 2
   orbitDampening: 10
   scrollDampening: 6
-  speed: 0.2
+  speed: 0.5
   camDisabled: 1
+  xAligned: 0
+  yAligned: 0
 --- !u!20 &1687258584
 Camera:
   m_ObjectHideFlags: 0
@@ -363,6 +365,7 @@ MonoBehaviour:
   isWhiteTurn: 1
   changePerspective: 0
   selectedMat: {fileID: 2100000, guid: ae54af155124259489939b382ce66896, type: 2}
+  feldMat: {fileID: 2100000, guid: efe348af4fda52c4cb4803129f3289dc, type: 2}
 --- !u!4 &1791588926
 Transform:
   m_ObjectHideFlags: 0

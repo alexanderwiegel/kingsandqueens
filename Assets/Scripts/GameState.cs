@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections.Generic;
 
 public class GameState : MonoBehaviour {
@@ -198,7 +198,7 @@ public class GameState : MonoBehaviour {
         }
     }
 
-    // TODO: hier Meshes statt Planes benutzen
+    /*
     void CreateSingleChessField(int row, int column, Color color) {
         GameObject feld = GameObject.CreatePrimitive(PrimitiveType.Plane);
         feld.GetComponent<Renderer>().material.color = color;
@@ -207,6 +207,44 @@ public class GameState : MonoBehaviour {
         feld.transform.Translate(2*column, 0, 2*row);
         feld.transform.localScale = new Vector3(0.2f, 0.2f, 0.2f);
         feld.transform.parent = spielfeld.transform;
+    }
+    */
+
+    public void CreateSquare(int row, int column, Color color) {
+        GameObject feld = new GameObject();
+        int number = row + 1;
+        feld.name = columns[column] + number;
+        feld.transform.parent = spielfeld.transform;
+        CreateTriangle(row, column, color, true).transform.parent = feld.transform;
+        CreateTriangle(row, column, color, false).transform.parent = feld.transform;
+    }
+
+    GameObject CreateTriangle(int row, int column, Color color, bool isLowerTriangle) {
+        GameObject triangle = new GameObject();
+        triangle.AddComponent<MeshFilter>();
+        triangle.AddComponent<MeshRenderer>();
+        Mesh mesh = triangle.GetComponent<MeshFilter>().mesh;
+        mesh.Clear();
+        if (isLowerTriangle) {
+            mesh.vertices = new Vector3[] {
+                new Vector3(-1 + row*2, 0, -1 + column*2), 
+                new Vector3(-1 + row*2, 0,  1 + column*2), 
+                new Vector3( 1 + row*2, 0, -1 + column*2)
+            };
+        }
+        else {
+            mesh.vertices = new Vector3[] {
+                new Vector3(-1 + row*2, 0,  1 + column*2), 
+                new Vector3( 1 + row*2, 0,  1 + column*2), 
+                new Vector3( 1 + row*2, 0, -1 + column*2)
+            };
+        }
+        mesh.uv = new Vector2[] {new Vector2(0,0), new Vector2(0,1), new Vector2(1,1)};
+        mesh.triangles = new int[] {0,1,2};
+        Renderer rend = triangle.GetComponent<Renderer>();
+        rend.material = feldMat;
+        mesh.colors = new Color[]{color, color, color};
+        return triangle;
     }
     
     void CreateChessPieces() {
