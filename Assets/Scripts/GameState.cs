@@ -35,6 +35,8 @@ public class GameState : MonoBehaviour {
     public int[] EnPassantMove {get; set;}
     bool schach = false;
     bool schachmatt = false;
+    bool[,] whiteMoves;
+    bool[,] blackMoves; 
     #endregion
 
     #region methods
@@ -46,38 +48,6 @@ public class GameState : MonoBehaviour {
     }
 
     void Update() {
-        #region Schachmatt
-        foreach (var item in schachfiguren) {
-            Schachfigur figur = item.GetComponent<Schachfigur>();
-            // nur mögliche Bewegungen der Figuren anschauen, deren Besitzer am Zug ist
-            if (isWhiteTurn == figur.isWhite) {
-                // wenn ein König bereits im Schach steht, wird solange vermutet, dass er Schachmatt ist, bis das Gegenteil bewiesen wird
-                if (schach) schachmatt = true;
-                schach = false;
-                bool[,] moves = figur.PossibleMovements();
-                for (int i = 0; i < 8; i++) {
-                    for (int j = 0; j < 8; j++) {
-                        // wenn an einer der möglichen Stellen ein König der anderen Farbe steht
-                        if (moves[i,j] && Schachfiguren[i,j] && Schachfiguren[i,j].isWhite != isWhiteTurn) {
-                            print("Gegnerische/r " + Schachfiguren[i,j]);
-                            if (Schachfiguren[i,j].Title == "König") {
-                                // TODO: 2D-Array für Figuren, wegen dem König im Schach steht? --> Doppelschach etc.
-                                schach = true;
-                                if (schach) print(isWhiteTurn ? "Schwarz" : "Weiß" + " steht im Schach wegen " + figur);
-                            }
-                        }
-                    }
-                }
-                // wenn ein König immernoch im Schach steht, ist er Schachmatt
-                if (schach && schachmatt) {
-                    print(isWhiteTurn ? "Weiß" : "Schwarz" + " ist Schachmatt");
-                    return;
-                }
-                else schachmatt = false;
-            }
-        }
-        #endregion
-
         #region Auswahl
         // Mauskoordinaten in Pixel
         Vector3 mouse = Input.mousePosition;
@@ -198,6 +168,40 @@ public class GameState : MonoBehaviour {
             selectedPiece.Move(x,z);
             // Bewegung speichern (für Rochade wichtig)
             selectedPiece.hasMoved = true;
+
+            #region Schachmatt
+            foreach (var item in schachfiguren) {
+                Schachfigur figur = item.GetComponent<Schachfigur>();
+                // nur mögliche Bewegungen der Figuren anschauen, deren Besitzer am Zug ist
+                if (isWhiteTurn == figur.isWhite) {
+                    bool[,] moves = figur.PossibleMovements();
+                    for (int i = 0; i < 8; i++) {
+                        for (int j = 0; j < 8; j++) {
+                            // wenn an einer der möglichen Stellen ein König der anderen Farbe steht
+                            // Schachfiguren[i,j].isWhite != isWhiteTurn --> unnötig, weil Figur gar nicht auf Feld könnte, wo Figur der selben Farbe steht
+                            if (moves[i,j] && Schachfiguren[i,j] && Schachfiguren[i,j].isWhite != isWhiteTurn) {
+                                print("Gegnerische/r " + Schachfiguren[i,j]);
+                                if (Schachfiguren[i,j].Title == "König") {
+                                    schach = true;
+                                    print(isWhiteTurn ? "Schwarz" : "Weiß" + " steht im Schach wegen " + figur);
+                                    // 1. kann das Schach geblockt werden, indem sich eine eigene Figur zwischen den König und die gegnerische Figur stellt?
+                                    schach = canNotBlock(figur, Schachfiguren[i,j]);
+                                    // 2. kann die gegnerische Figur, wegen der der König im Schach steht, geschlagen werden?
+                                    if (schach) schach = canNotKill(figur, Schachfiguren[i,j]);
+                                    // 3. kann der König entkommen, indem er auf eines seiner Nachbarfelder zieht?
+                                    if (schach) schach = canNotMove(Schachfiguren[i,j]);
+                                    if (schach) {
+                                        print("Schachmatt!");
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            #endregion
+
             // Wechsel
             isWhiteTurn = !isWhiteTurn;
             changePerspective = true;
@@ -208,6 +212,118 @@ public class GameState : MonoBehaviour {
         selectedPiece.GetComponent<MeshRenderer>().material = previousMat;
         selectedPiece = null;
         CreateChessBoard();
+    }
+
+    bool canNotBlock(Schachfigur angreifer, Schachfigur koenig) {
+        whiteMoves = new bool[8,8];
+        blackMoves = new bool[8,8];
+        foreach (var item in schachfiguren) {
+            Schachfigur figur = item.GetComponent<Schachfigur>();
+            if (figur.Title != "König") {
+                bool[,] moves = figur.PossibleMovements();
+                for (int i = 0; i < 8; i++) {
+                    for (int j = 0; j < 8; j++) {
+                        if (moves[i,j]) {
+                            if (figur.isWhite) whiteMoves[i,j] = true;
+                            else blackMoves[i,j] = true;
+                        }        
+                    }
+                }
+            }
+        }
+
+        List<Feld> weg = new List<Feld>();
+        int ax = angreifer.X;
+        int az = angreifer.Z;
+        int distance;
+        int distanceOnX = Mathf.Abs(angreifer.X - koenig.X);
+        int distanceOnZ = Mathf.Abs(angreifer.Z - koenig.Z);
+        if (distanceOnX == 0) distance = distanceOnZ;
+        else distance = distanceOnX;
+
+        for (int i = 1; i < distance; i++) {
+                 if (angreifer.X  > koenig.X && angreifer.Z  > koenig.Z) weg.Add(new Feld(--ax, --az));
+            else if (angreifer.X  > koenig.X && angreifer.Z  < koenig.Z) weg.Add(new Feld(--ax, ++az));
+            else if (angreifer.X  < koenig.X && angreifer.Z  < koenig.Z) weg.Add(new Feld(++ax, ++az));
+            else if (angreifer.X  < koenig.X && angreifer.Z  > koenig.Z) weg.Add(new Feld(++ax, --az));
+            else if (angreifer.X  > koenig.X && angreifer.Z == koenig.Z) weg.Add(new Feld(--ax, az));
+            else if (angreifer.X == koenig.X && angreifer.Z  < koenig.Z) weg.Add(new Feld(ax, ++az));
+            else if (angreifer.X  < koenig.X && angreifer.Z == koenig.Z) weg.Add(new Feld(++ax, az));
+            else if (angreifer.X == koenig.X && angreifer.Z  > koenig.Z) weg.Add(new Feld(ax, --az));
+        }
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                foreach (Feld feld in weg) {
+                    print(feld);
+                    if (i == feld.x && j == feld.z) {
+                        if (!isWhiteTurn && whiteMoves[i,j] || isWhiteTurn && blackMoves[i,j]) {
+                            print(angreifer + " kann auf " + feld + " geblockt werden");
+                            return false;
+                        }
+                    }
+                }                
+            }
+        }
+        return true;
+    }
+
+    bool canNotKill(Schachfigur angreifer, Schachfigur koenig) {
+        bool[,] moves = koenig.PossibleMovements();
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                if (moves[i,j]) {
+                    if (koenig.isWhite) whiteMoves[i,j] = true;
+                    else blackMoves[i,j] = true;
+                }            
+            }
+        }
+        if (!isWhiteTurn) {
+            if (whiteMoves[angreifer.X, angreifer.Z]) {
+                print("Weiß kann den Angreifer killen");
+                return false;
+            }
+        }
+        else {
+            if (blackMoves[angreifer.X, angreifer.Z]) {
+                print("Schwarz kann den Angreifer killen");
+                return false;
+            }
+        }
+        return true;
+    }
+
+    bool canNotMove(Schachfigur koenig) {
+        foreach (var item in schachfiguren) {
+            Schachfigur figur = item.GetComponent<Schachfigur>();
+            // diagonale Angriffsbewegung der Bauern
+            if (figur.Title == "Bauer") {
+                int x = figur.X;
+                int z = figur.Z;
+                if (figur.isWhite) {
+                    // links vorne
+                    if (x-1 >= 0 && z+1 <= 7) whiteMoves[figur.X-1, figur.Z+1] = true;
+                    // rechts vorne
+                    if (x+1 <= 7 && z+1 <= 7) whiteMoves[figur.X+1, figur.Z+1] = true;
+                }
+                else {
+                    // links vorne
+                    if (x+1 <= 7 && z-1 >= 0) blackMoves[figur.X+1, figur.Z-1] = true;
+                    // rechts vorne
+                    if (x-1 >= 0 && z-1 >= 0) blackMoves[figur.X-1, figur.Z-1] = true;
+                }
+            }
+        }
+        
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                if (isWhiteTurn && koenig.PossibleMovements()[i,j] && !whiteMoves[i,j] 
+                || !isWhiteTurn && koenig.PossibleMovements()[i,j] && !blackMoves[i,j]) {
+                    print(koenig + " kann ausweichen");
+                    return false;
+                } 
+            }
+        }
+        return true;
     }
 
     void SelectPiece(int x, int z) {
@@ -373,4 +489,21 @@ public class GameState : MonoBehaviour {
             }
         }
     }
+}
+
+public class Feld {
+    public int x;
+    public int z;
+
+    public Feld(int x, int z) {
+        this.x = x;
+        this.z = z;
+    }
+
+    public override string ToString() {
+        string[] columns = {"A","B","C","D","E","F","G","H"};
+        string spalte = columns[x];
+        int reihe = z+1;
+        return spalte + reihe;
+  }
 }

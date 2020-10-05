@@ -5,6 +5,7 @@ using UnityEngine;
 class Koenig : Schachfigur {
   public override string Title {get{return "König";}}
 
+  // TODO: beim König keine Felder hervorheben, die vom Gegner bedroht sind
   public override bool[,] PossibleMovements() {
     bool[,] moves = new bool[8,8];
 
@@ -17,6 +18,7 @@ class Koenig : Schachfigur {
     KingMove(X + 1, Z + 1, ref moves); // rechts hoch
     KingMove(X - 1, Z + 1, ref moves); // rechts runter
 
+    // TODO: Rochade über bedrohte Felder unmöglich machen
     #region Rochade
     // wenn sich der König noch nicht bewegt hat
     if (!hasMoved) {
