@@ -325,36 +325,38 @@ public class GameState : MonoBehaviour {
         return true;
     }
 
-    void fillMoves() {
+    void fillEnemyMoves(bool whiteKing) {
         whiteMoves = new bool[8,8];
         blackMoves = new bool[8,8];
         foreach (var item in schachfiguren) {
             Schachfigur figur = item.GetComponent<Schachfigur>();
-            bool[,] moves = figur.PossibleMovements();
-            for (int i = 0; i < 8; i++) {
-                for (int j = 0; j < 8; j++) {
-                    if (moves[i,j]) {
-                        if (figur.isWhite) whiteMoves[i,j] = true;
-                        else blackMoves[i,j] = true;
-                    }        
+            if (figur.isWhite != whiteKing) {
+               bool[,] moves = figur.PossibleMovements();
+                for (int i = 0; i < 8; i++) {
+                    for (int j = 0; j < 8; j++) {
+                        if (moves[i,j]) {
+                            if (figur.isWhite) whiteMoves[i,j] = true;
+                            else blackMoves[i,j] = true;
+                        }        
+                    }
                 }
-            }
-            // diagonale Angriffsbewegung der Bauern
-            if (figur.Title == "Bauer") {
-                int x = figur.X;
-                int z = figur.Z;
-                if (figur.isWhite) {
-                    // links vorne
-                    if (x-1 >= 0 && z+1 <= 7) whiteMoves[figur.X-1, figur.Z+1] = true;
-                    // rechts vorne
-                    if (x+1 <= 7 && z+1 <= 7) whiteMoves[figur.X+1, figur.Z+1] = true;
-                }
-                else {
-                    // links vorne
-                    if (x+1 <= 7 && z-1 >= 0) blackMoves[figur.X+1, figur.Z-1] = true;
-                    // rechts vorne
-                    if (x-1 >= 0 && z-1 >= 0) blackMoves[figur.X-1, figur.Z-1] = true;
-                }
+                // diagonale Angriffsbewegung der Bauern
+                if (figur.Title == "Bauer") {
+                    int x = figur.X;
+                    int z = figur.Z;
+                    if (figur.isWhite) {
+                        // links vorne
+                        if (x-1 >= 0 && z+1 <= 7) whiteMoves[figur.X-1, figur.Z+1] = true;
+                        // rechts vorne
+                        if (x+1 <= 7 && z+1 <= 7) whiteMoves[figur.X+1, figur.Z+1] = true;
+                    }
+                    else {
+                        // links vorne
+                        if (x+1 <= 7 && z-1 >= 0) blackMoves[figur.X+1, figur.Z-1] = true;
+                        // rechts vorne
+                        if (x-1 >= 0 && z-1 >= 0) blackMoves[figur.X-1, figur.Z-1] = true;
+                    }
+                } 
             }
         }
     }
@@ -371,7 +373,7 @@ public class GameState : MonoBehaviour {
             selectedMat.mainTexture = previousMat.mainTexture;
             selectedPiece.GetComponent<MeshRenderer>().material = selectedMat;
             // Highlighting der erlaubten Züge
-            fillMoves();
+            fillEnemyMoves(selectedPiece.isWhite);
             allowedMoves = selectedPiece.PossibleMovements();
             HighlightAllowedMoves();
             //print(selectedPiece);

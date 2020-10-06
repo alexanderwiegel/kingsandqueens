@@ -2,7 +2,6 @@
   public override string Title {get{return "König";}}
   GameState gs = GameState.Instance;
 
-  // TODO: beim König keine Felder hervorheben, die vom Gegner bedroht sind
   public override bool[,] PossibleMovements() {
     bool[,] moves = new bool[8,8];
 
@@ -15,7 +14,6 @@
     KingMove(X + 1, Z + 1, ref moves); // rechts hoch
     KingMove(X - 1, Z + 1, ref moves); // rechts runter
 
-    // TODO: Rochade über bedrohte Felder unmöglich machen
     #region Rochade
     // wenn sich der König noch nicht bewegt hat
     if (!hasMoved) {
@@ -71,7 +69,13 @@
     // wenn innerhalb des Spielfelds
     if (x >= 0 && x < 8 && z >= 0 && z < 8) {
       other = gs.Schachfiguren[x,z];
-      if (other == null) moves[x,z] = true;
+      // und das Feld frei
+      if (other == null) {
+        // und das Feld nicht vom Gegner bedroht ist
+        if (this.isWhite && !gs.blackMoves[x,z] || !this.isWhite && !gs.whiteMoves[x,z])
+        moves[x,z] = true;
+      }
+      // oder auf dem Feld ein Gegner steht
       else if (this.isWhite != other.isWhite) moves[x,z] = true;
     }
   }
