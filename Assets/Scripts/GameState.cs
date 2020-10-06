@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.SceneManagement;
 using System.Collections.Generic;
 
 public class GameState : MonoBehaviour {
@@ -80,7 +81,7 @@ public class GameState : MonoBehaviour {
                 // wenn Gegner König ist, ist das Spiel vorbei
                 if (enemy.Title == "König") {
                     print(isWhiteTurn ? "Schwarz" : "Weiß" + " ist Schachmatt");
-                    return;
+                    EndGame();
                 }
             }
 
@@ -191,7 +192,7 @@ public class GameState : MonoBehaviour {
                                     if (schach) schach = canNotMove(Schachfiguren[i,j]);
                                     if (schach) {
                                         print("Schachmatt!");
-                                        return;
+                                        EndGame();
                                     }
                                 }
                             }
@@ -359,6 +360,12 @@ public class GameState : MonoBehaviour {
                 } 
             }
         }
+    }
+
+    void EndGame() {
+        // TODO: Ergebnis zeigen
+
+        SceneManager.LoadScene("Menu");
     }
 
     void SelectPiece(int x, int z) {

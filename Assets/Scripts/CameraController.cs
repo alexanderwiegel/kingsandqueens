@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 
 public class CameraController : MonoBehaviour {
     #region fields and properties
@@ -82,27 +83,29 @@ public class CameraController : MonoBehaviour {
 
             #region y-Achse
             //else if (!yAligned) {
-                
-                // von schwarz nach weiß
-                if (GameState.Instance.isWhiteTurn && Mathf.Floor(parent.eulerAngles.y) == 0) {
-                    parent.rotation = Quaternion.Euler(30,0,0);
-                    localRotation = new Vector3(0,30,0);
-                    //yAligned = true;
-                    GameState.Instance.changePerspective = false;
-                }
-                // von weiß nach schwarz
-                else if (!GameState.Instance.isWhiteTurn && Mathf.Ceil(parent.eulerAngles.y) == 180) {
-                    parent.rotation = Quaternion.Euler(30,180,0);
-                    localRotation = new Vector3(180,30,0);
-                    //yAligned = true;
-                    GameState.Instance.changePerspective = false;
-                }
-                else {
-                    // Space.World immens wichtig
-                    parent.Rotate(0, 180 * speed * Time.deltaTime, 0, Space.World);
-                }
+                // Space.World immens wichtig
+                parent.Rotate(0, 180 * speed * Time.deltaTime, 0, Space.World);
+                StartCoroutine("StopCamera");
             //}
             #endregion
+        }
+    }
+
+    IEnumerator StopCamera() {
+        yield return new WaitForSeconds(1);
+        // von schwarz nach weiß
+        if (GameState.Instance.isWhiteTurn && Mathf.Floor(parent.eulerAngles.y) == 0 || Mathf.Ceil(parent.eulerAngles.y) == 0) {
+            parent.rotation = Quaternion.Euler(30,0,0);
+            localRotation = new Vector3(0,30,0);
+            //yAligned = true;
+            GameState.Instance.changePerspective = false;
+        }
+        // von weiß nach schwarz
+        else if (!GameState.Instance.isWhiteTurn && Mathf.Floor(parent.eulerAngles.y) == 180 || Mathf.Ceil(parent.eulerAngles.y) == 180) {
+            parent.rotation = Quaternion.Euler(30,180,0);
+            localRotation = new Vector3(180,30,0);
+            //yAligned = true;
+            GameState.Instance.changePerspective = false;
         }
     }
 }

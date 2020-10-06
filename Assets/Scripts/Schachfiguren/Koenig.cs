@@ -15,8 +15,8 @@
     KingMove(X - 1, Z + 1, ref moves); // rechts runter
 
     #region Rochade
-    // wenn sich der König noch nicht bewegt hat
-    if (!hasMoved) {
+    // wenn sich der König noch nicht bewegt hat und nicht bedroht ist
+    if (!hasMoved && isWhite && !gs.blackMoves[X,Z] || !isWhite && !gs.whiteMoves[X,Z]) {
 
       Schachfigur other;
 
