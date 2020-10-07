@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections.Generic;
+using System.Collections;
 
 public class GameState : MonoBehaviour {
     #region fields and properties
@@ -37,12 +38,15 @@ public class GameState : MonoBehaviour {
     bool schach = false;
     public bool[,] whiteMoves;
     public bool[,] blackMoves; 
+    public GameObject promotionMenu;
+    int promotion;
     #endregion
 
     #region methods
     void Start() {
         Felder = new GameObject[8,8];
         Instance = this;
+        promotionMenu.SetActive(false);
         CreateChessBoard();
         CreateChessPieces();
     }
@@ -68,6 +72,30 @@ public class GameState : MonoBehaviour {
             }
         }
         #endregion
+    }
+
+    public void Promote(int promotion) {
+        this.promotion = promotion;
+        promotionMenu.SetActive(false);
+    }
+
+    IEnumerator PromotePawn(Feld feld) {
+        yield return new WaitUntil(() => !promotionMenu.activeSelf);
+        schachfiguren.Remove(selectedPiece.gameObject);
+        Destroy(selectedPiece.gameObject);
+        if (isWhiteTurn) CreateSingleChessPiece(promotion,feld.x,feld.z);
+        else CreateSingleChessPiece(promotion+6,feld.x,feld.z);
+        selectedPiece = Schachfiguren[feld.x,feld.z];
+        Time.timeScale = 1;
+    }
+
+    void ShowPromotionInterface() {
+        Time.timeScale = 0;
+        promotionMenu.SetActive(true);
+        for (int i = 0; i < 4; i++) {
+            if (isWhiteTurn) promotionMenu.transform.GetChild(i).GetChild(1).gameObject.SetActive(true);
+            else promotionMenu.transform.GetChild(i).GetChild(2).gameObject.SetActive(true);
+        }
     }
 
     void MovePiece(int x, int z) {
@@ -114,12 +142,8 @@ public class GameState : MonoBehaviour {
             #region Umwandlung des Bauern
                 // wenn ein Bauer das jeweilige Ende des Spielfelds erreicht hat
                 if (z == 7 || z == 0) {
-                    schachfiguren.Remove(selectedPiece.gameObject);
-                    Destroy(selectedPiece.gameObject);
-                    // TODO: hier Auswahl-Interface für Dame, Turm, Läufer und Springer anzeigen
-                    if (z == 7) CreateSingleChessPiece(3,x,z);
-                    else if (z == 0) CreateSingleChessPiece(9,x,z);
-                    selectedPiece = Schachfiguren[x,z];
+                    ShowPromotionInterface();
+                    StartCoroutine("PromotePawn", new Feld(x,z));
                 }
             }
             #endregion
@@ -158,7 +182,9 @@ public class GameState : MonoBehaviour {
                 #endregion
             }
             #endregion
-
+            
+            // PATCH: damit bei der Promotion des Bauern auf die Auswahl gewartet wird
+            if (Time.timeScale == 1) {
             // an der bisherigen Position der Figur steht gleich keine mehr
             Schachfiguren[selectedPiece.X, selectedPiece.Z] = null;
             // physische Bewegung der Figur
@@ -168,6 +194,7 @@ public class GameState : MonoBehaviour {
             selectedPiece.Move(x,z);
             // Bewegung speichern (für Rochade wichtig)
             selectedPiece.hasMoved = true;
+            }
 
             #region Schachmatt
             foreach (var item in schachfiguren) {
@@ -180,7 +207,7 @@ public class GameState : MonoBehaviour {
                             // wenn an einer der möglichen Stellen ein König der anderen Farbe steht
                             // Schachfiguren[i,j].isWhite != isWhiteTurn --> unnötig, weil Figur gar nicht auf Feld könnte, wo Figur der selben Farbe steht
                             if (moves[i,j] && Schachfiguren[i,j] && Schachfiguren[i,j].isWhite != isWhiteTurn) {
-                                print("Gegnerische/r " + Schachfiguren[i,j]);
+                                //print("Gegnerische/r " + Schachfiguren[i,j]);
                                 if (Schachfiguren[i,j].Title == "König") {
                                     schach = true;
                                     print(isWhiteTurn ? "Schwarz" : "Weiß" + " steht im Schach wegen " + figur);
@@ -201,17 +228,22 @@ public class GameState : MonoBehaviour {
                 }
             }
             #endregion
-
+            // PATCH: damit bei der Promotion des Bauern auf die Auswahl gewartet wird
+            if (Time.timeScale == 1) {
             // Wechsel
             isWhiteTurn = !isWhiteTurn;
             changePerspective = true;
             CameraController.Instance.xAligned = false;
             CameraController.Instance.yAligned = false;
+            }
         }
+        // PATCH: damit bei der Promotion des Bauern auf die Auswahl gewartet wird
+        if (Time.timeScale == 1) {
         // Auswahl aufheben
         selectedPiece.GetComponent<MeshRenderer>().material = previousMat;
         selectedPiece = null;
         CreateChessBoard();
+        }
     }
 
     bool canNotBlock(Schachfigur angreifer, Schachfigur koenig) {
