@@ -39,6 +39,7 @@ public class GameState : MonoBehaviour {
     public bool[,] whiteMoves;
     public bool[,] blackMoves; 
     public GameObject promotionMenu;
+    public GameObject endButton;
     int promotion;
     #endregion
 
@@ -47,6 +48,7 @@ public class GameState : MonoBehaviour {
         Felder = new GameObject[8,8];
         Instance = this;
         promotionMenu.SetActive(false);
+        endButton.SetActive(false);
         CreateChessBoard();
         CreateChessPieces();
     }
@@ -286,7 +288,7 @@ public class GameState : MonoBehaviour {
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
                 foreach (Feld feld in weg) {
-                    print(feld);
+                    //print(feld);
                     if (i == feld.x && j == feld.z) {
                         if (!isWhiteTurn && whiteMoves[i,j] || isWhiteTurn && blackMoves[i,j]) {
                             print(angreifer + " kann auf " + feld + " geblockt werden");
@@ -395,8 +397,12 @@ public class GameState : MonoBehaviour {
     }
 
     void EndGame() {
-        // TODO: Ergebnis zeigen
+        string winner = isWhiteTurn ? "Weiß" : "Schwarz";
+        endButton.SetActive(true);
+        endButton.transform.GetChild(0).GetComponent<TMPro.TextMeshProUGUI>().text = winner + " hat gewonnen!";
+    }
 
+    public void ReturnToMenu() {
         SceneManager.LoadScene("Menu");
     }
 
