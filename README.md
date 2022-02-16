@@ -1,5 +1,6 @@
-# kingsandqueens
-This is a chess game I made with Unity in my 6th bachelor semester.
+# Kings and queens
+...is a chess game I made with Unity in my 6th bachelor semester.
+
 ![1_Menu](https://user-images.githubusercontent.com/51864122/154375641-904b55c3-58f2-4a03-83be-ae57987e94c4.JPG)
 ![2_Start](https://user-images.githubusercontent.com/51864122/154375652-94c5649c-b215-43b2-9426-212226d150b1.JPG)
 ![3_Zoom](https://user-images.githubusercontent.com/51864122/154375656-1eb280ba-940a-4798-8dca-57f2a32b88b9.JPG)
